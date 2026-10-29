@@ -33,15 +33,15 @@ public:
 };
 
 class TournamentLock {
-    static size_t next_power_of_two(int n) {
-        size_t count = 2;
-        while (count < static_cast<size_t>(n)) {
+    static int next_power_of_two(int n) {
+        int count = 2;
+        while (count < n) {
             count *= 2;
         }
         return count;
     }
 
-    size_t leaves;
+    int leaves;
     vector<PetersonLock> nodes;
 
 public:
@@ -50,16 +50,16 @@ public:
 
     // Global thread id maps to leaf leaves + id; node 1 is the root.
     void acquire(int id) {
-        for (size_t child = leaves + id; child > 1; child /= 2) {
-            nodes[child / 2].acquire(static_cast<int>(child % 2));
+        for (int child = leaves + id; child > 1; child /= 2) {
+            nodes[child / 2].acquire(child % 2);
         }
     }
 
     // Read id's path from its highest bit to release root toward leaf.
     void release(int id) {
-        size_t node = 1;
-        for (size_t bit = leaves / 2; bit > 0; bit /= 2) {
-            int side = (static_cast<size_t>(id) & bit) ? 1 : 0;
+        int node = 1;
+        for (int bit = leaves / 2; bit > 0; bit /= 2) {
+            int side = (id & bit) ? 1 : 0;
             nodes[node].release(side);
             node = 2 * node + side;
         }
@@ -115,8 +115,7 @@ void philosopher(int id, int n, bool coarse, unsigned int seed,
     }
 }
 
-void run_solution(int n, bool coarse, TournamentLock& table,
-                  vector<PetersonLock>& chopsticks) {
+void run_solution(int n, bool coarse, TournamentLock& table,vector<PetersonLock>& chopsticks) {
     const char* solution = coarse ? "COARSE" : "FINE";
     vector<thread> threads;
     threads.reserve(n);
